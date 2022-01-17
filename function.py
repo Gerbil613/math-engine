@@ -2,7 +2,6 @@ import math
 from decimal import *
 # TODO: 
 # - deal with irrationals/too long decimals
-# - add additive identity
 # - add exponential identity (a^1=a)
 # - add exponential annihilation (a^0=1)
 # multiplication Functions MUST have two children
@@ -82,6 +81,13 @@ class Function:
                 self.children = target.children
                 self.content = target.content
 
+        # simplify various functions
+        elif self.content == 'sin' and not self.contains_variable:
+            val = math.sin(self.children[0].content)
+            if abs(Decimal(val) - Decimal(round(val, getcontext().prec))) <= 10**-(getcontext().prec):
+                self.content = round(val, getcontext().prec)
+                self.children = []
+
         self.check_contains_variable()
 
     def differentiate(self):
@@ -128,6 +134,6 @@ class Function:
         if self.content == 'cos' and self.contains_variable:
             return Function('*', Function('*', Function(-1), Function('sin', self.children[0])), self.children[0].differentiate())
 
-func = Function('+', Function('x'), Function(0))
-print(func)
+func = Function('sin', Function(math.pi))
+func.simplify()
 print(func)
