@@ -5,7 +5,7 @@ from decimal import *
 # - add additive identity
 # - add exponential identity (a^1=a)
 # - add exponential annihilation (a^0=1)
-# multiplication nodes MUST have two children
+# multiplication Functions MUST have two children
 
 getcontext().prec = 10
 
@@ -15,7 +15,7 @@ def is_num(num):
     except Exception: return False
     return True
 
-class Node:
+class Function:
     def __init__(self, content, *children):
         self.children = list(children)
         self.content = content
@@ -33,8 +33,8 @@ class Node:
         if self.content == 'x': return True
         elif type(self.content) == int or type(self.content) == float: return False
         out = False
-        for node in self.children:
-            out = out or node.contains_variable
+        for Function in self.children:
+            out = out or Function.contains_variable
         return out
 
     def check_evaluatable(self):
@@ -53,7 +53,7 @@ class Node:
                 for j in range(len(string)):
                     if string[j] == '^': string = string[:j] + '**' + string[j+1:]
                 
-                self.children[i] = Node(eval(string))
+                self.children[i] = Function(eval(string))
 
             elif self.children[i].content != 'x':
                 self.children[i].simplify()
@@ -85,49 +85,49 @@ class Node:
         self.check_contains_variable()
 
     def differentiate(self):
-        if self.content == 'x': return Node(1)
+        if self.content == 'x': return Function(1)
         # derivative of constant is 0
         if not self.contains_variable:
-            return Node(0)
+            return Function(0)
 
         # additivity of differentiation
         if self.content == '+':
             sum = []
-            for node in self.children: sum.append(node.differentiate())
-            return Node('+', *sum)
+            for Function in self.children: sum.append(Function.differentiate())
+            return Function('+', *sum)
 
         if self.content == '^' and self.contains_variable:
             # power rule
             if self.children[0].contains_variable and not self.children[1].contains_variable:
                 n = Decimal(self.children[1].content)
-                return Node('*', Node('*',Node(n), Node('^', self.children[0], Node(n-1))), self.children[0].differentiate())
+                return Function('*', Function('*', Function(n), Function('^', self.children[0], Function(n-1))), self.children[0].differentiate())
             
             # exponent rule
             else:
                 n = self.children[0].content
-                return Node('*', self, Node('ln', Node(n)))
+                return Function('*', self, Function('ln', Function(n)))
 
         # product rule
         if self.content == '*':
             a = self.children[0]
             b = self.children[1]
-            return Node('+', Node('*', a.differentiate(), b), Node('*', a, b.differentiate()))
+            return Function('+', Function('*', a.differentiate(), b), Function('*', a, b.differentiate()))
 
         # convert division into multiplication by reciprocal
         if self.content == '/':
-            return Node('*', self.children[0], Node('^', self.children[1], Node(-1))).differentiate()
+            return Function('*', self.children[0], Function('^', self.children[1], Function(-1))).differentiate()
 
         # natural log
         if self.content == 'ln' and self.contains_variable:
-            return Node('*', Node('^', self.children[0], Node(-1)), self.children[0].differentiate())
+            return Function('*', Function('^', self.children[0], Function(-1)), self.children[0].differentiate())
 
         # sine
         if self.content == 'sin' and self.contains_variable:
-            return Node('*', Node('cos', self.children[0]), self.children[0].differentiate())
+            return Function('*', Function('cos', self.children[0]), self.children[0].differentiate())
 
         if self.content == 'cos' and self.contains_variable:
-            return Node('*', Node('*', Node(-1), Node('sin', self.children[0])), self.children[0].differentiate())
+            return Function('*', Function('*', Function(-1), Function('sin', self.children[0])), self.children[0].differentiate())
 
-func = Node('+', Node('x'), Node(0))
+func = Function('+', Function('x'), Function(0))
 print(func)
 print(func)
