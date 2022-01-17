@@ -82,8 +82,20 @@ class Function:
                 self.content = target.content
 
         # simplify various functions
+        elif self.content == 'ln' and not self.contains_variable:
+            val = math.log(self.children[0].content)
+            if abs(Decimal(val) - Decimal(round(val, getcontext().prec))) <= 10**-(getcontext().prec):
+                self.content = round(val, getcontext().prec)
+                self.children = []
+
         elif self.content == 'sin' and not self.contains_variable:
             val = math.sin(self.children[0].content)
+            if abs(Decimal(val) - Decimal(round(val, getcontext().prec))) <= 10**-(getcontext().prec):
+                self.content = round(val, getcontext().prec)
+                self.children = []
+
+        elif self.content == 'cos' and not self.contains_variable:
+            val = math.cos(self.children[0].content)
             if abs(Decimal(val) - Decimal(round(val, getcontext().prec))) <= 10**-(getcontext().prec):
                 self.content = round(val, getcontext().prec)
                 self.children = []
@@ -99,7 +111,7 @@ class Function:
         # additivity of differentiation
         if self.content == '+':
             sum = []
-            for Function in self.children: sum.append(Function.differentiate())
+            for function in self.children: sum.append(function.differentiate())
             return Function('+', *sum)
 
         if self.content == '^' and self.contains_variable:
@@ -131,9 +143,13 @@ class Function:
         if self.content == 'sin' and self.contains_variable:
             return Function('*', Function('cos', self.children[0]), self.children[0].differentiate())
 
+        # cosine
         if self.content == 'cos' and self.contains_variable:
             return Function('*', Function('*', Function(-1), Function('sin', self.children[0])), self.children[0].differentiate())
 
-func = Function('sin', Function(math.pi))
-func.simplify()
-print(func)
+        # tangent
+        if self.content == 'tan' and self.contains_variable:
+            return Function(Function('^', Function('sec', Function('x')), Function(2)), self.children[0].differentiate())
+
+func = Function('tan', Function('x'))
+print(func.differentiate())
