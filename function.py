@@ -53,7 +53,6 @@ class Function:
 
     def evaluate(self, x):
         string = self.special_str()
-        print(string)
         for operation in translator:
             string = string.replace(operation, str(translator[operation]))
         
