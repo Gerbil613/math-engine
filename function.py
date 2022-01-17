@@ -3,8 +3,7 @@ from decimal import *
 # TODO: 
 # - add exponential identity (a^1=a)
 # - add exponential annihilation (a^0=1)
-# - simplification from string to string might be trippy and only work for exponents since it's a 1 -> 2 length map
-# - Function.evaluate() is extremely bad because floating point errors accumulate within eval() function
+# - translating from string to string might be trippy and only work for exponents since it's a 1 -> 2 length map
 # multiplication Functions MUST have two children
 
 getcontext().prec = 100
