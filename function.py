@@ -1,7 +1,6 @@
 import math
 from decimal import *
 # TODO: 
-# - add exponential identity (a^1=a)
 # - add exponential annihilation (a^0=1)
 # - translating from string to string might be trippy and only work for exponents since it's a 1 -> 2 length map
 # multiplication Functions MUST have two children
@@ -15,12 +14,6 @@ translator = {
     'cos': math.cos,
     'tan': math.tan
 }
-
-def is_num(num):
-    is_number = True
-    try: Decimal(num)
-    except Exception: return False
-    return True
 
 class Function:
     def __init__(self, content, *children):
@@ -61,8 +54,8 @@ class Function:
         if self.content == 'x': return True
         elif type(self.content) == int or type(self.content) == float: return False
         out = False
-        for Function in self.children:
-            out = out or Function.contains_variable
+        for function in self.children:
+            out = out or function.contains_variable
         return out
 
     def simplify(self):
@@ -92,6 +85,17 @@ class Function:
                 target = self.children[0 if self.children[0].content != 0 else 1]
                 self.children = target.children
                 self.content = target.content
+
+        elif self.content == '^':
+            # exponential identity
+            if self.children[0].content == 'x' and self.children[1].content == 1:
+                self.content = 'x'
+                self.children = []
+            
+            # exponential annihilation
+            elif self.children[0].content == 'x' and self.children[1].content == 0:
+                self.content = 1
+                self.children = 0
 
         # simplify various functions
         elif self.content in translator and not self.contains_variable:
@@ -145,29 +149,26 @@ class Function:
         if self.content == '/':
             return Function('*', self.children[0], Function('^', self.children[1], Function(-1))).differentiate()
 
+        if self.content == '-':
+            return Function('+', self.children[0], Function('*', Function(-1), self.children[1])).differentiate()
+
         output = None
         # natural log
         if self.content == 'ln' and self.contains_variable:
-            output = Function('*', Function('^', self.children[0], Function(-1)), self.children[0].differentiate())
+            return Function('*', Function('^', self.children[0], Function(-1)), self.children[0].differentiate())
 
         # sine
         if self.content == 'sin' and self.contains_variable:
-            output = Function('*', Function('cos', self.children[0]), self.children[0].differentiate())
+            return Function('*', Function('cos', self.children[0]), self.children[0].differentiate())
 
         # cosine
         if self.content == 'cos' and self.contains_variable:
-            output = Function('*', Function('*', Function(-1), Function('sin', self.children[0])), self.children[0].differentiate())
+            return Function('*', Function('*', Function(-1), Function('sin', self.children[0])), self.children[0].differentiate())
 
         # tangent
         if self.content == 'tan' and self.contains_variable:
-            output = Function('*', Function('^', Function('sec', Function('x')), Function(2)), self.children[0].differentiate())
+            return Function('*', Function('^', Function('sec', Function('x')), Function(2)), self.children[0].differentiate())
 
-        output.simplify()
-        return output
-
-numerator = Function('+', Function('^', Function('x'), Function('2')), Function(1))
-denominator = Function('+', Function('x'), Function('3'))
-fraction = Function('/', numerator, denominator)
-func = Function('ln', Function('^', fraction, Function(0.5)))
-deriv = func.differentiate()
-print(deriv.evaluate(0))
+x = Function('+', Function('^', Function('x'), Function(2)), Function('x')).differentiate()
+x.simplify()
+print(x)
